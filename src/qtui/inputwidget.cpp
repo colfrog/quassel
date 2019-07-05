@@ -498,7 +498,7 @@ void InputWidget::changeNick(const QString& newNick) const
 
 void InputWidget::onTextEntered(const QString& text)
 {
-    Client::userInput(currentBufferInfo(), text);
+    Client::userInput(currentBufferInfo(), replaceFormattingCodes(text));
 
     // Remove formatting from entered text
     // TODO: Offer a way to convert pasted text to mIRC formatting codes
