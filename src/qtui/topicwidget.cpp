@@ -198,8 +198,10 @@ void TopicWidget::on_topicLineEdit_textEntered()
         BufferInfo bufferInfo = currentIdx.data(NetworkModel::BufferInfoRole).value<BufferInfo>();
         if (ui.topicLineEdit->text().isEmpty())
             Client::userInput(bufferInfo, QString("/quote TOPIC %1 :").arg(bufferInfo.bufferName()));
-        else
-            Client::userInput(bufferInfo, QString("/topic %1").arg(ui.topicLineEdit->text()));
+        else {
+            QString newtopic = replaceFormattingCodes(ui.topicLineEdit->text());
+            Client::userInput(bufferInfo, QString("/topic %1").arg(newtopic));
+        }
     }
     switchPlain();
 }
@@ -220,7 +222,7 @@ void TopicWidget::switchEditable()
 void TopicWidget::switchPlain()
 {
     ui.stackedWidget->setCurrentIndex(0);
-    ui.topicLineEdit->setPlainText(_topic);
+    ui.topicLineEdit->setPlainText(replaceIRCMarkups(_topic));
     updateGeometry();
     emit switchedPlain();
 }

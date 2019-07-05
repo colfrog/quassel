@@ -50,6 +50,12 @@ COMMON_EXPORT QString decodeString(const QByteArray& input, QTextCodec* codec = 
 
 COMMON_EXPORT uint editingDistance(const QString& s1, const QString& s2);
 
+/* Replace formatting codes by mIRC colour codes */
+COMMON_EXPORT QString replaceFormattingCodes(const QString& s);
+
+/* Replace mIRC colour codes by formatting codes */
+COMMON_EXPORT QString replaceIRCMarkups(const QString& s);
+
 template<typename T>
 QVariantList toVariantList(const QList<T>& list)
 {
