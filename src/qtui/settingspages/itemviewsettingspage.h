@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -46,7 +46,6 @@ private slots:
 
 private:
     Ui::ItemViewSettingsPage ui;
-    QSignalMapper* _mapper;
     QTreeWidgetItem *_networkItem, *_defaultBufferItem, *_inactiveBufferItem, *_activeBufferItem, *_unreadBufferItem, *_highlightedBufferItem;
 
     inline QString settingsKey() const override { return QString("ItemViews"); }

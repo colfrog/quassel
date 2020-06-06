@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -34,7 +34,6 @@ public:
 
     std::unique_ptr<AbstractSqlMigrationWriter> createMigrationWriter() override;
 
-public slots:
     /* General */
     bool isAvailable() const override;
     QString backendId() const override;
@@ -63,14 +62,14 @@ public slots:
     IdentityId createIdentity(UserId user, CoreIdentity& identity) override;
     bool updateIdentity(UserId user, const CoreIdentity& identity) override;
     void removeIdentity(UserId user, IdentityId identityId) override;
-    QList<CoreIdentity> identities(UserId user) override;
+    std::vector<CoreIdentity> identities(UserId user) override;
 
     /* Network handling */
     NetworkId createNetwork(UserId user, const NetworkInfo& info) override;
     bool updateNetwork(UserId user, const NetworkInfo& info) override;
     bool removeNetwork(UserId user, const NetworkId& networkId) override;
-    QList<NetworkInfo> networks(UserId user) override;
-    QList<NetworkId> connectedNetworks(UserId user) override;
+    std::vector<NetworkInfo> networks(UserId user) override;
+    std::vector<NetworkId> connectedNetworks(UserId user) override;
     void setNetworkConnected(UserId user, const NetworkId& networkId, bool isConnected) override;
 
     /* persistent channels */
@@ -87,11 +86,12 @@ public slots:
     /* Buffer handling */
     BufferInfo bufferInfo(UserId user, const NetworkId& networkId, BufferInfo::Type type, const QString& buffer = "", bool create = true) override;
     BufferInfo getBufferInfo(UserId user, const BufferId& bufferId) override;
-    QList<BufferInfo> requestBuffers(UserId user) override;
-    QList<BufferId> requestBufferIdsForNetwork(UserId user, NetworkId networkId) override;
+    std::vector<BufferInfo> requestBuffers(UserId user) override;
+    std::vector<BufferId> requestBufferIdsForNetwork(UserId user, NetworkId networkId) override;
     bool removeBuffer(const UserId& user, const BufferId& bufferId) override;
     bool renameBuffer(const UserId& user, const BufferId& bufferId, const QString& newName) override;
     bool mergeBuffersPermanently(const UserId& user, const BufferId& bufferId1, const BufferId& bufferId2) override;
+    QHash<BufferId, MsgId> bufferLastMsgIds(UserId user) override;
     void setBufferLastSeenMsg(UserId user, const BufferId& bufferId, const MsgId& msgId) override;
     QHash<BufferId, MsgId> bufferLastSeenMsgIds(UserId user) override;
     void setBufferMarkerLineMsg(UserId user, const BufferId& bufferId, const MsgId& msgId) override;
@@ -108,21 +108,21 @@ public slots:
     /* Message handling */
     bool logMessage(Message& msg) override;
     bool logMessages(MessageList& msgs) override;
-    QList<Message> requestMsgs(UserId user, BufferId bufferId, MsgId first = -1, MsgId last = -1, int limit = -1) override;
-    QList<Message> requestMsgsFiltered(UserId user,
-                                       BufferId bufferId,
-                                       MsgId first = -1,
-                                       MsgId last = -1,
-                                       int limit = -1,
-                                       Message::Types type = Message::Types{-1},
-                                       Message::Flags flags = Message::Flags{-1}) override;
-    QList<Message> requestAllMsgs(UserId user, MsgId first = -1, MsgId last = -1, int limit = -1) override;
-    QList<Message> requestAllMsgsFiltered(UserId user,
-                                          MsgId first = -1,
-                                          MsgId last = -1,
-                                          int limit = -1,
-                                          Message::Types type = Message::Types{-1},
-                                          Message::Flags flags = Message::Flags{-1}) override;
+    std::vector<Message> requestMsgs(UserId user, BufferId bufferId, MsgId first = -1, MsgId last = -1, int limit = -1) override;
+    std::vector<Message> requestMsgsFiltered(UserId user,
+                                             BufferId bufferId,
+                                             MsgId first = -1,
+                                             MsgId last = -1,
+                                             int limit = -1,
+                                             Message::Types type = Message::Types{-1},
+                                             Message::Flags flags = Message::Flags{-1}) override;
+    std::vector<Message> requestAllMsgs(UserId user, MsgId first = -1, MsgId last = -1, int limit = -1) override;
+    std::vector<Message> requestAllMsgsFiltered(UserId user,
+                                                MsgId first = -1,
+                                                MsgId last = -1,
+                                                int limit = -1,
+                                                Message::Types type = Message::Types{-1},
+                                                Message::Flags flags = Message::Flags{-1}) override;
 
     /* Sysident handling */
     QMap<UserId, QString> getAllAuthUserNames() override;

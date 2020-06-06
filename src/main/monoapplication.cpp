@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -30,7 +30,11 @@ class InternalPeer;
 
 MonolithicApplication::MonolithicApplication(int& argc, char** argv)
     : QtUiApplication(argc, argv)
-{}
+{
+#if QT_VERSION >= 0x050700
+    QGuiApplication::setDesktopFileName(Quassel::buildInfo().applicationName);
+#endif
+}
 
 void MonolithicApplication::init()
 {

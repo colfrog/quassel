@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -22,17 +22,6 @@
 
 #include <QDebug>
 #include <QStringList>
-#include <QtCore>
-
-IgnoreListManager& IgnoreListManager::operator=(const IgnoreListManager& other)
-{
-    if (this == &other)
-        return *this;
-
-    SyncableObject::operator=(other);
-    _ignoreList = other._ignoreList;
-    return *this;
-}
 
 int IgnoreListManager::indexOf(const QString& ignore) const
 {

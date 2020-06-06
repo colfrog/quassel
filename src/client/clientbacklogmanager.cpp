@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -20,6 +20,7 @@
 
 #include "clientbacklogmanager.h"
 
+#include <algorithm>
 #include <ctime>
 
 #include <QDebug>
@@ -28,6 +29,7 @@
 #include "backlogrequester.h"
 #include "backlogsettings.h"
 #include "client.h"
+#include "util.h"
 
 ClientBacklogManager::ClientBacklogManager(QObject* parent)
     : BacklogManager(parent)
@@ -116,7 +118,7 @@ void ClientBacklogManager::requestInitialBacklog()
 BufferIdList ClientBacklogManager::filterNewBufferIds(const BufferIdList& bufferIds)
 {
     BufferIdList newBuffers;
-    QSet<BufferId> availableBuffers = Client::networkModel()->allBufferIds().toSet();
+    QSet<BufferId> availableBuffers = toQSet(Client::networkModel()->allBufferIds());
     foreach (BufferId bufferId, bufferIds) {
         if (_buffersRequested.contains(bufferId) || !availableBuffers.contains(bufferId))
             continue;
@@ -164,7 +166,7 @@ void ClientBacklogManager::dispatchMessages(const MessageList& messages, bool so
 
     clock_t start_t = clock();
     if (sort)
-        qSort(msgs);
+        std::sort(msgs.begin(), msgs.end());
     Client::messageProcessor()->process(msgs);
     clock_t end_t = clock();
 

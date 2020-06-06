@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -30,6 +30,7 @@
 #include "client.h"
 #include "icon.h"
 #include "networkmodel.h"
+#include "util.h"
 
 ChatMonitorSettingsPage::ChatMonitorSettingsPage(QWidget* parent)
     : SettingsPage(tr("Interface"), tr("Chat Monitor"), parent)
@@ -156,7 +157,7 @@ void ChatMonitorSettingsPage::save()
     // save list of active buffers
     QVariantList saveableBufferIdList;
     foreach (BufferId id, _configActive->bufferList()) {
-        saveableBufferIdList << QVariant::fromValue<BufferId>(id);
+        saveableBufferIdList << QVariant::fromValue(id);
     }
 
     chatViewSettings.setValue("Buffers", saveableBufferIdList);
@@ -189,7 +190,7 @@ bool ChatMonitorSettingsPage::testHasChanged()
     if (_configActive->bufferList().count() != settings["Buffers"].toList().count())
         return true;
 
-    QSet<BufferId> uiBufs = _configActive->bufferList().toSet();
+    QSet<BufferId> uiBufs = toQSet(_configActive->bufferList());
     QSet<BufferId> settingsBufs;
     foreach (QVariant v, settings["Buffers"].toList())
         settingsBufs << v.value<BufferId>();

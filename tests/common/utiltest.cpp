@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,28 +18,23 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
  ***************************************************************************/
 
-#include "debugconsole.h"
+#include <QDebug>
+#include <QDateTime>
+#include <QTimeZone>
 
-#include "client.h"
-#include "signalproxy.h"
+#include "testglobal.h"
+#include "util.h"
 
-DebugConsole::DebugConsole(QWidget* parent)
-    : QDialog(parent)
+TEST(UtilTest, formatDateTimeToOffsetISO)
 {
-    ui.setupUi(this);
+    QDateTime dateTime{{2006, 01, 02}, {15, 04, 05}, QTimeZone{"UTC+01:00"}};
 
-    Client::signalProxy()->attachSignal(this, &DebugConsole::scriptRequest);
-    Client::signalProxy()->attachSlot(SIGNAL(scriptResult(QString)), this, &DebugConsole::scriptResult);
-}
+    ASSERT_TRUE(dateTime.isValid());
+    ASSERT_FALSE(dateTime.isNull());
 
-void DebugConsole::on_evalButton_clicked()
-{
-    if (ui.selectCore->isChecked()) {
-        emit scriptRequest(ui.scriptEdit->toPlainText());
-    }
-}
-
-void DebugConsole::scriptResult(QString result)
-{
-    ui.resultLabel->setText(result);
+    EXPECT_EQ(formatDateTimeToOffsetISO(dateTime), QString("2006-01-02 15:04:05+01:00"));
+    EXPECT_EQ(formatDateTimeToOffsetISO(dateTime.toUTC()), QString("2006-01-02 14:04:05Z"));
+    EXPECT_EQ(formatDateTimeToOffsetISO(dateTime.toOffsetFromUtc(0)), QString("2006-01-02 14:04:05Z"));
+    EXPECT_EQ(formatDateTimeToOffsetISO(dateTime.toOffsetFromUtc(7200)), QString("2006-01-02 16:04:05+02:00"));
+    EXPECT_EQ(formatDateTimeToOffsetISO(dateTime.toTimeZone(QTimeZone{"UTC"})), QString("2006-01-02 14:04:05Z"));
 }

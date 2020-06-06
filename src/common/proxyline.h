@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,29 +18,22 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
  ***************************************************************************/
 
-#ifndef DEBUGCONSOLE_H
-#define DEBUGCONSOLE_H
+#pragma once
 
-#include "ui_debugconsole.h"
+#include <QAbstractSocket>
+#include <QByteArray>
+#include <QHostAddress>
 
-class DebugConsole : public QDialog
+#include "common-export.h"
+
+struct COMMON_EXPORT ProxyLine
 {
-    Q_OBJECT
+    QAbstractSocket::NetworkLayerProtocol protocol = QAbstractSocket::UnknownNetworkLayerProtocol;
+    QHostAddress sourceHost;
+    uint16_t sourcePort;
+    QHostAddress targetHost;
+    uint16_t targetPort;
 
-public:
-    DebugConsole(QWidget* parent = nullptr);
-
-public slots:
-    void scriptResult(QString result);
-
-signals:
-    void scriptRequest(QString script);
-
-private slots:
-    void on_evalButton_clicked();
-
-private:
-    Ui::DebugConsole ui;
+    static ProxyLine parseProxyLine(const QByteArray& line);
+    friend COMMON_EXPORT QDebug operator<<(QDebug dbg, const ProxyLine& p);
 };
-
-#endif

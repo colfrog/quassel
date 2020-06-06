@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -141,7 +141,7 @@ public:
      *
      * @returns True if in progress, otherwise false
      */
-    inline bool capNegotiationInProgress() const { return (!_capsQueuedIndividual.empty() || !_capsQueuedBundled.empty()); }
+    inline bool capsPendingNegotiation() const { return (!_capsQueuedIndividual.empty() || !_capsQueuedBundled.empty()); }
 
     /**
      * Queues a capability to be requested.
@@ -521,6 +521,7 @@ private:
     qint64 _socketId{0};
 
     CoreUserInputHandler* _userInputHandler;
+    MetricsServer* _metricsServer;
 
     QHash<QString, QString> _channelKeys;  // stores persistent channels and their passwords, if any
 

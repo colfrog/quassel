@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -556,7 +556,7 @@ QListWidgetItem* NetworksSettingsPage::insertNetwork(const NetworkInfo& info)
         if (!item)
             item = new QListWidgetItem(disconnectedIcon, info.networkName, ui.networkList);
     }
-    item->setData(Qt::UserRole, QVariant::fromValue<NetworkId>(info.networkId));
+    item->setData(Qt::UserRole, QVariant::fromValue(info.networkId));
     setItemState(info.networkId, item);
     widgetHasChanged();
     return item;

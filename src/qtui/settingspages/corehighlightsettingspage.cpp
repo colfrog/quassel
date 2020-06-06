@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -19,6 +19,8 @@
  ***************************************************************************/
 
 #include "corehighlightsettingspage.h"
+
+#include <algorithm>
 
 #include <QHeaderView>
 #include <QMessageBox>
@@ -420,7 +422,7 @@ void CoreHighlightSettingsPage::removeSelectedHighlightRows()
     for (auto selectedItem : selectedItemList) {
         selectedRows.append(selectedItem->row());
     }
-    qSort(selectedRows.begin(), selectedRows.end(), qGreater<int>());
+    std::sort(selectedRows.begin(), selectedRows.end(), std::greater<>());
     int lastRow = -1;
     for (auto row : selectedRows) {
         if (row != lastRow) {
@@ -438,7 +440,7 @@ void CoreHighlightSettingsPage::removeSelectedIgnoredRows()
     for (auto selectedItem : selectedItemList) {
         selectedRows.append(selectedItem->row());
     }
-    qSort(selectedRows.begin(), selectedRows.end(), qGreater<int>());
+    std::sort(selectedRows.begin(), selectedRows.end(), std::greater<>());
     int lastRow = -1;
     for (auto row : selectedRows) {
         if (row != lastRow) {
@@ -618,7 +620,7 @@ void CoreHighlightSettingsPage::save()
     if (ruleManager == nullptr)
         return;
 
-    auto clonedManager = HighlightRuleManager();
+    HighlightRuleManager clonedManager;
     clonedManager.fromVariantMap(ruleManager->toVariantMap());
     clonedManager.clear();
 
@@ -732,7 +734,7 @@ void CoreHighlightSettingsPage::importRules()
         save();
     }
 
-    auto clonedManager = HighlightRuleManager();
+    HighlightRuleManager clonedManager;
     clonedManager.fromVariantMap(Client::highlightRuleManager()->toVariantMap());
 
     for (const auto& variant : notificationSettings.highlightList()) {

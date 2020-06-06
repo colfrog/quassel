@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -20,10 +20,15 @@
 
 #include "corebuffersyncer.h"
 
+#include <algorithm>
+#include <iterator>
+#include <set>
+
 #include "core.h"
 #include "corenetwork.h"
 #include "coresession.h"
 #include "ircchannel.h"
+#include "util.h"
 
 class PurgeEvent : public QEvent
 {
@@ -34,7 +39,8 @@ public:
 };
 
 CoreBufferSyncer::CoreBufferSyncer(CoreSession* parent)
-    : BufferSyncer(Core::bufferLastSeenMsgIds(parent->user()),
+    : BufferSyncer(Core::bufferLastMsgIds(parent->user()),
+                   Core::bufferLastSeenMsgIds(parent->user()),
                    Core::bufferMarkerLineMsgIds(parent->user()),
                    Core::bufferActivities(parent->user()),
                    Core::highlightCounts(parent->user()),
@@ -184,15 +190,14 @@ void CoreBufferSyncer::requestPurgeBufferIds()
 void CoreBufferSyncer::purgeBufferIds()
 {
     _purgeBuffers = false;
-    QList<BufferInfo> bufferInfos = Core::requestBuffers(_coreSession->user());
-    QSet<BufferId> actualBuffers;
-    foreach (BufferInfo bufferInfo, bufferInfos) {
-        actualBuffers << bufferInfo.bufferId();
-    }
+    auto bufferInfos = Core::requestBuffers(_coreSession->user());
+    std::set<BufferId> actualBuffers;
+    std::transform(bufferInfos.cbegin(), bufferInfos.cend(), std::inserter(actualBuffers, actualBuffers.end()),
+                   [](auto&& bufferInfo) { return bufferInfo.bufferId(); });
 
-    QSet<BufferId> storedIds = lastSeenBufferIds().toSet() + markerLineBufferIds().toSet();
+    QSet<BufferId> storedIds = toQSet(lastSeenBufferIds()) + toQSet(markerLineBufferIds());
     foreach (BufferId bufferId, storedIds) {
-        if (!actualBuffers.contains(bufferId)) {
+        if (actualBuffers.find(bufferId) == actualBuffers.end()) {
             BufferSyncer::removeBuffer(bufferId);
         }
     }

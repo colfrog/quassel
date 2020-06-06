@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -601,6 +601,10 @@ QString MultiLineEdit::convertMircCodesToHtml(const QString& text)
         }
 
         posRight = text.indexOf(mircCode.cap(), posRight + 1);
+        if (posRight == -1) {
+            words << text.mid(posLeft);
+            break;  // unclosed color code; can't process
+        }
         words << text.mid(posLeft, posRight + 1 - posLeft);
         posLeft = posRight + 1;
     }

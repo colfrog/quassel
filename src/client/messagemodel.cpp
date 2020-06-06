@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -19,6 +19,8 @@
  ***************************************************************************/
 
 #include "messagemodel.h"
+
+#include <algorithm>
 
 #include <QEvent>
 
@@ -105,13 +107,13 @@ void MessageModel::insertMessages(const QList<Message>& msglist)
             else {
                 _messageBuffer = msglist.mid(processedMsgs);
             }
-            qSort(_messageBuffer);
+            std::sort(_messageBuffer.begin(), _messageBuffer.end());
             QCoreApplication::postEvent(this, new ProcessBufferEvent());
         }
     }
     else {
         _messageBuffer << msglist;
-        qSort(_messageBuffer);
+        std::sort(_messageBuffer.begin(), _messageBuffer.end());
     }
 }
 
@@ -437,11 +439,11 @@ QVariant MessageModelItem::data(int column, int role) const
 
     switch (role) {
     case MessageModel::MessageRole:
-        return QVariant::fromValue<Message>(message());
+        return QVariant::fromValue(message());
     case MessageModel::MsgIdRole:
-        return QVariant::fromValue<MsgId>(msgId());
+        return QVariant::fromValue(msgId());
     case MessageModel::BufferIdRole:
-        return QVariant::fromValue<BufferId>(bufferId());
+        return QVariant::fromValue(bufferId());
     case MessageModel::TypeRole:
         return msgType();
     case MessageModel::FlagsRole:
@@ -449,9 +451,9 @@ QVariant MessageModelItem::data(int column, int role) const
     case MessageModel::TimestampRole:
         return timestamp();
     case MessageModel::RedirectedToRole:
-        return qVariantFromValue<BufferId>(_redirectedTo);
+        return QVariant::fromValue(_redirectedTo);
     default:
-        return QVariant();
+        return {};
     }
 }
 

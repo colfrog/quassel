@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,10 +18,16 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
  ***************************************************************************/
 
-#ifndef STORAGE_H
-#define STORAGE_H
+#pragma once
 
-#include <QtCore>
+#include <vector>
+
+#include <QMap>
+#include <QObject>
+#include <QProcessEnvironment>
+#include <QString>
+#include <QVariant>
+#include <QVariantList>
 
 #include "coreidentity.h"
 #include "message.h"
@@ -50,7 +56,6 @@ public:
 
     };
 
-public slots:
     /* General */
 
     //! Check if the storage type is available.
@@ -194,7 +199,7 @@ public slots:
     virtual IdentityId createIdentity(UserId user, CoreIdentity& identity) = 0;
     virtual bool updateIdentity(UserId user, const CoreIdentity& identity) = 0;
     virtual void removeIdentity(UserId user, IdentityId identityId) = 0;
-    virtual QList<CoreIdentity> identities(UserId user) = 0;
+    virtual std::vector<CoreIdentity> identities(UserId user) = 0;
 
     /* Network handling */
 
@@ -228,7 +233,7 @@ public slots:
      *  \param user        The core user
      *  \return QList<NetworkInfo>.
      */
-    virtual QList<NetworkInfo> networks(UserId user) = 0;
+    virtual std::vector<NetworkInfo> networks(UserId user) = 0;
 
     //! Get a list of Networks to restore
     /** Return a list of networks the user was connected at the time of core shutdown
@@ -236,7 +241,7 @@ public slots:
      *
      *  \param user  The User Id in question
      */
-    virtual QList<NetworkId> connectedNetworks(UserId user) = 0;
+    virtual std::vector<NetworkId> connectedNetworks(UserId user) = 0;
 
     //! Update the connected state of a network
     /** \note This method is threadsafe
@@ -335,7 +340,7 @@ public slots:
      *  \param user  The user whose buffers we request
      *  \return A list of the BufferInfos for all buffers as requested
      */
-    virtual QList<BufferInfo> requestBuffers(UserId user) = 0;
+    virtual std::vector<BufferInfo> requestBuffers(UserId user) = 0;
 
     //! Request a list of BufferIds for a given NetworkId
     /** \note This method is threadsafe.
@@ -344,7 +349,7 @@ public slots:
      *  \param networkId  The NetworkId of the network in question
      *  \return List of BufferIds belonging to the Network
      */
-    virtual QList<BufferId> requestBufferIdsForNetwork(UserId user, NetworkId networkId) = 0;
+    virtual std::vector<BufferId> requestBufferIdsForNetwork(UserId user, NetworkId networkId) = 0;
 
     //! Remove permanently a buffer and it's content from the storage backend
     /** This call cannot be reverted!
@@ -379,6 +384,12 @@ public slots:
      * \param MsgId     The Message id of the message that has been just seen
      */
     virtual void setBufferLastSeenMsg(UserId user, const BufferId& bufferId, const MsgId& msgId) = 0;
+
+    //! Get a Hash of all last message ids
+    /** This Method is called when the Quassel Core is started to restore the lastMsgIds
+     * \param user      The Owner of the buffers
+     */
+    virtual QHash<BufferId, MsgId> bufferLastMsgIds(UserId user) = 0;
 
     //! Get a Hash of all last seen message ids
     /** This Method is called when the Quassel Core is started to restore the lastSeenMsgIds
@@ -498,7 +509,7 @@ public slots:
      *  \param limit    if != -1 limit the returned list to a max of \limit entries
      *  \return The requested list of messages
      */
-    virtual QList<Message> requestMsgs(UserId user, BufferId bufferId, MsgId first = -1, MsgId last = -1, int limit = -1) = 0;
+    virtual std::vector<Message> requestMsgs(UserId user, BufferId bufferId, MsgId first = -1, MsgId last = -1, int limit = -1) = 0;
 
     //! Request a certain number messages stored in a given buffer, matching certain filters
     /** \param buffer   The buffer we request messages from
@@ -508,14 +519,13 @@ public slots:
      *  \param type     The Message::Types that should be returned
      *  \return The requested list of messages
      */
-    virtual QList<Message> requestMsgsFiltered(UserId user,
-                                               BufferId bufferId,
-                                               MsgId first = -1,
-                                               MsgId last = -1,
-                                               int limit = -1,
-                                               Message::Types type = Message::Types{-1},
-                                               Message::Flags flags = Message::Flags{-1})
-        = 0;
+    virtual std::vector<Message> requestMsgsFiltered(UserId user,
+                                                     BufferId bufferId,
+                                                     MsgId first = -1,
+                                                     MsgId last = -1,
+                                                     int limit = -1,
+                                                     Message::Types type = Message::Types{-1},
+                                                     Message::Flags flags = Message::Flags{-1}) = 0;
 
     //! Request a certain number of messages across all buffers
     /** \param first    if != -1 return only messages with a MsgId >= first
@@ -523,7 +533,7 @@ public slots:
      *  \param limit    Max amount of messages
      *  \return The requested list of messages
      */
-    virtual QList<Message> requestAllMsgs(UserId user, MsgId first = -1, MsgId last = -1, int limit = -1) = 0;
+    virtual std::vector<Message> requestAllMsgs(UserId user, MsgId first = -1, MsgId last = -1, int limit = -1) = 0;
 
     //! Request a certain number of messages across all buffers, matching certain filters
     /** \param first    if != -1 return only messages with a MsgId >= first
@@ -532,13 +542,12 @@ public slots:
      *  \param type     The Message::Types that should be returned
      *  \return The requested list of messages
      */
-    virtual QList<Message> requestAllMsgsFiltered(UserId user,
-                                                  MsgId first = -1,
-                                                  MsgId last = -1,
-                                                  int limit = -1,
-                                                  Message::Types type = Message::Types{-1},
-                                                  Message::Flags flags = Message::Flags{-1})
-        = 0;
+    virtual std::vector<Message> requestAllMsgsFiltered(UserId user,
+                                                        MsgId first = -1,
+                                                        MsgId last = -1,
+                                                        int limit = -1,
+                                                        Message::Types type = Message::Types{-1},
+                                                        Message::Flags flags = Message::Flags{-1}) = 0;
 
     //! Fetch all authusernames
     /** \return      Map of all current UserIds to permitted idents
@@ -572,5 +581,3 @@ private:
     bool checkHashedPasswordSha2_512(const QString& password, const QString& hashedPassword);
     QString sha2_512(const QString& input);
 };
-
-#endif

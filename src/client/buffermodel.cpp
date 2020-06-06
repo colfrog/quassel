@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -138,7 +138,7 @@ void BufferModel::newBuffers(const QModelIndex& parent, int start, int end)
         return;
 
     for (int row = start; row <= end; row++) {
-        QModelIndex child = parent.child(row, 0);
+        QModelIndex child = parent.model()->index(row, 0, parent);
         newBuffer(child.data(NetworkModel::BufferIdRole).value<BufferId>());
     }
 }

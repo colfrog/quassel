@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -44,7 +44,7 @@ OidentdConfigGenerator::~OidentdConfigGenerator()
 
 bool OidentdConfigGenerator::init()
 {
-    _configDir = QDir::homePath();
+    _configDir.setPath(QDir::homePath());
     _configFileName = ".oidentd.conf";
 
     if (Quassel::isOptionSet("oidentd-conffile"))

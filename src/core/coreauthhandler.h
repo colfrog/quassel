@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -22,7 +22,9 @@
 #define COREAUTHHANDLER_H
 
 #include "authhandler.h"
+#include "metricsserver.h"
 #include "peerfactory.h"
+#include "proxyline.h"
 #include "remotepeer.h"
 #include "types.h"
 
@@ -32,6 +34,9 @@ class CoreAuthHandler : public AuthHandler
 
 public:
     CoreAuthHandler(QTcpSocket* socket, QObject* parent = nullptr);
+
+    QHostAddress hostAddress() const;
+    bool isLocal() const override;
 
 signals:
     void handshakeComplete(RemotePeer* peer, UserId uid);
@@ -60,7 +65,11 @@ private slots:
 
 private:
     RemotePeer* _peer;
+    MetricsServer* _metricsServer;
 
+    bool _proxyReceived;
+    ProxyLine _proxyLine;
+    bool _useProxyLine;
     bool _magicReceived;
     bool _legacy;
     bool _clientRegistered;

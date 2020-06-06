@@ -32,6 +32,7 @@ target_sources(${TARGET} PRIVATE
     eventstringifier.cpp
     identserver.cpp
     ircparser.cpp
+    metricsserver.cpp
     netsplit.cpp
     oidentdconfiggenerator.cpp
     postgresqlstorage.cpp
@@ -48,7 +49,6 @@ target_link_libraries(${TARGET}
     PUBLIC
         Qt5::Core
         Qt5::Network
-        Qt5::Script
         Qt5::Sql
         Quassel::Common
 )

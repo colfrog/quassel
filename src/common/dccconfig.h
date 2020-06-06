@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -87,16 +87,6 @@ public:
      * @param[in] parent QObject parent
      */
     DccConfig(QObject* parent = nullptr);
-
-    /**
-     * Assignment operator.
-     *
-     * @note Only assigns properties relevant for config management!
-     *
-     * @param[in] other Right-hand side instance
-     * @returns The updated instance
-     */
-    DccConfig& operator=(const DccConfig& other);
 
     /**
      * Equality operator.

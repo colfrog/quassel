@@ -10,3 +10,7 @@ quassel_add_test(SignalProxyTest
     LIBRARIES
         Quassel::Test::Util
 )
+
+quassel_add_test(TypesTest)
+
+quassel_add_test(UtilTest)

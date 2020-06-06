@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -24,16 +24,6 @@
 #include <QStringList>
 
 #include "network.h"
-
-AliasManager& AliasManager::operator=(const AliasManager& other)
-{
-    if (this == &other)
-        return *this;
-
-    SyncableObject::operator=(other);
-    _aliases = other._aliases;
-    return *this;
-}
 
 int AliasManager::indexOf(const QString& name) const
 {

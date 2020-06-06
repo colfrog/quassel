@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -20,11 +20,14 @@
 
 #include "abstractsqlstorage.h"
 
+#include <QDir>
+#include <QFileInfo>
 #include <QMutexLocker>
 #include <QSqlDriver>
 #include <QSqlError>
 #include <QSqlField>
 #include <QSqlQuery>
+#include <QThread>
 
 #include "quassel.h"
 
@@ -180,13 +183,13 @@ QString AbstractSqlStorage::queryString(const QString& queryName, int version)
     return query.trimmed();
 }
 
-QList<AbstractSqlStorage::SqlQueryResource> AbstractSqlStorage::setupQueries()
+std::vector<AbstractSqlStorage::SqlQueryResource> AbstractSqlStorage::setupQueries()
 {
-    QList<SqlQueryResource> queries;
+    std::vector<SqlQueryResource> queries;
     // The current schema is stored in the root folder, including setup scripts.
     QDir dir = QDir(QString(":/SQL/%1/").arg(displayName()));
     foreach (QFileInfo fileInfo, dir.entryInfoList(QStringList() << "setup*", QDir::NoFilter, QDir::Name)) {
-        queries << SqlQueryResource(queryString(fileInfo.baseName()), fileInfo.baseName());
+        queries.emplace_back(queryString(fileInfo.baseName()), fileInfo.baseName());
     }
     return queries;
 }
@@ -218,13 +221,13 @@ bool AbstractSqlStorage::setup(const QVariantMap& settings, const QProcessEnviro
     return success;
 }
 
-QList<AbstractSqlStorage::SqlQueryResource> AbstractSqlStorage::upgradeQueries(int version)
+std::vector<AbstractSqlStorage::SqlQueryResource> AbstractSqlStorage::upgradeQueries(int version)
 {
-    QList<SqlQueryResource> queries;
+    std::vector<SqlQueryResource> queries;
     // Upgrade queries are stored in the 'version/##' subfolders.
     QDir dir = QDir(QString(":/SQL/%1/version/%2/").arg(displayName()).arg(version));
     foreach (QFileInfo fileInfo, dir.entryInfoList(QStringList() << "upgrade*", QDir::NoFilter, QDir::Name)) {
-        queries << SqlQueryResource(queryString(fileInfo.baseName(), version), fileInfo.baseName());
+        queries.emplace_back(queryString(fileInfo.baseName(), version), fileInfo.baseName());
     }
     return queries;
 }
@@ -384,7 +387,7 @@ bool AbstractSqlStorage::watchQuery(QSqlQuery& query)
             valueStrings << QString("%1=%2").arg(iter.key(), value);
         }
         qCritical() << "                bound Values:" << qPrintable(valueStrings.join(", "));
-        qCritical() << "                Error Number:" << query.lastError().number();
+        qCritical() << "                  Error Code:" << qPrintable(query.lastError().nativeErrorCode());
         qCritical() << "               Error Message:" << qPrintable(query.lastError().text());
         qCritical() << "              Driver Message:" << qPrintable(query.lastError().driverText());
         qCritical() << "                  DB Message:" << qPrintable(query.lastError().databaseText());
@@ -492,7 +495,7 @@ void AbstractSqlMigrator::dumpStatus()
     QList<QVariant> list = boundValues();
     for (int i = 0; i < list.size(); ++i)
         qWarning() << i << ": " << list.at(i).toString().toLatin1().data();
-    qWarning() << "  Error Number:" << lastError().number();
+    qWarning() << "  Error Code:" << qPrintable(lastError().nativeErrorCode());
     qWarning() << "  Error Message:" << lastError().text();
 }
 

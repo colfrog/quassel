@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -19,6 +19,8 @@
  ***************************************************************************/
 
 #include "chatviewsearchcontroller.h"
+
+#include <algorithm>
 
 #include <QAbstractItemModel>
 #include <QPainter>
@@ -116,7 +118,7 @@ void ChatViewSearchController::updateHighlights(bool reuse)
             if (line)
                 chatLines << line;
         }
-        foreach (ChatLine* line, QList<ChatLine*>(chatLines.toList())) {
+        foreach (ChatLine* line, chatLines) {
             updateHighlights(line);
         }
     }
@@ -300,8 +302,7 @@ void ChatViewSearchController::repositionHighlights()
         if (line)
             chatLines << line;
     }
-    QList<ChatLine*> chatLineList(chatLines.toList());
-    foreach (ChatLine* line, chatLineList) {
+    foreach (ChatLine* line, chatLines) {
         repositionHighlights(line);
     }
 }
@@ -330,7 +331,7 @@ void ChatViewSearchController::repositionHighlights(ChatLine* line)
         }
     }
 
-    qSort(searchHighlights.begin(), searchHighlights.end(), SearchHighlightItem::firstInLine);
+    std::sort(searchHighlights.begin(), searchHighlights.end(), SearchHighlightItem::firstInLine);
 
     Q_ASSERT(wordPos.count() == searchHighlights.count());
     for (int i = 0; i < searchHighlights.count(); i++) {

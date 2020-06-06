@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -21,8 +21,6 @@
 #include "coresession.h"
 
 #include <utility>
-
-#include <QtScript>
 
 #include "core.h"
 #include "corebacklogmanager.h"
@@ -78,10 +76,10 @@ CoreSession::CoreSession(UserId uid, bool restoreState, bool strictIdentEnabled,
     , _sessionEventProcessor(new CoreSessionEventProcessor(this))
     , _ctcpParser(new CtcpParser(this))
     , _ircParser(new IrcParser(this))
-    , scriptEngine(new QScriptEngine(this))
     , _processMessages(false)
     , _ignoreListManager(this)
     , _highlightRuleManager(this)
+    , _metricsServer(Core::instance()->metricsServer())
 {
     SignalProxy* p = signalProxy();
     p->setHeartBeatInterval(30);
@@ -120,7 +118,6 @@ CoreSession::CoreSession(UserId uid, bool restoreState, bool strictIdentEnabled,
     _coreInfo->setCoreData(data);
 
     loadSettings();
-    initScriptEngine();
 
     eventManager()->registerObject(ircParser(), EventManager::NormalPriority);
     eventManager()->registerObject(sessionEventProcessor(), EventManager::HighPriority);  // needs to process events *before* the stringifier!
@@ -151,6 +148,10 @@ CoreSession::CoreSession(UserId uid, bool restoreState, bool strictIdentEnabled,
         restoreSessionState();
 
     emit initialized();
+
+    if (_metricsServer) {
+        _metricsServer->addSession(user(), Core::instance()->strictSysIdent(_user));
+    }
 }
 
 void CoreSession::shutdown()
@@ -170,6 +171,10 @@ void CoreSession::shutdown()
     if (_networksPendingDisconnect.isEmpty()) {
         // Nothing to do, suicide so the core can shut down
         deleteLater();
+    }
+
+    if (_metricsServer) {
+        _metricsServer->removeSession(user());
     }
 }
 
@@ -202,11 +207,11 @@ void CoreSession::loadSettings()
 
     // migrate to db
     QList<IdentityId> ids = s.identityIds();
-    QList<NetworkInfo> networkInfos = Core::networks(user());
+    std::vector<NetworkInfo> networkInfos = Core::networks(user());
     for (IdentityId id : ids) {
         CoreIdentity identity(s.identity(id));
         IdentityId newId = Core::createIdentity(user(), identity);
-        QList<NetworkInfo>::iterator networkIter = networkInfos.begin();
+        auto networkIter = networkInfos.begin();
         while (networkIter != networkInfos.end()) {
             if (networkIter->identity == id) {
                 networkIter->identity = newId;
@@ -239,10 +244,8 @@ void CoreSession::saveSessionState() const
 
 void CoreSession::restoreSessionState()
 {
-    QList<NetworkId> nets = Core::connectedNetworks(user());
-    CoreNetwork* net = nullptr;
-    for (NetworkId id :  nets) {
-        net = network(id);
+    for (NetworkId id : Core::connectedNetworks(user())) {
+        auto net = network(id);
         Q_ASSERT(net);
         net->connectToIrc();
     }
@@ -257,6 +260,10 @@ void CoreSession::addClient(RemotePeer* peer)
     _coreInfo->setConnectedClientData(signalProxy()->peerCount(), signalProxy()->peerData());
 
     signalProxy()->setTargetPeer(nullptr);
+
+    if (_metricsServer) {
+        _metricsServer->addClient(user());
+    }
 }
 
 void CoreSession::addClient(InternalPeer* peer)
@@ -271,6 +278,10 @@ void CoreSession::removeClient(Peer* peer)
     if (p)
         qInfo() << qPrintable(tr("Client")) << p->description() << qPrintable(tr("disconnected (UserId: %1).").arg(user().toInt()));
     _coreInfo->setConnectedClientData(signalProxy()->peerCount(), signalProxy()->peerData());
+
+    if (_metricsServer) {
+        _metricsServer->removeClient(user());
+    }
 }
 
 QHash<QString, QString> CoreSession::persistentChannels(NetworkId id) const
@@ -346,7 +357,7 @@ void CoreSession::processMessageEvent(MessageEvent* event)
     });
 }
 
-QList<BufferInfo> CoreSession::buffers() const
+std::vector<BufferInfo> CoreSession::buffers() const
 {
     return Core::requestBuffers(user());
 }
@@ -515,21 +526,6 @@ Protocol::SessionState CoreSession::sessionState() const
     return Protocol::SessionState(identities, bufferInfos, networkIds);
 }
 
-void CoreSession::initScriptEngine()
-{
-    signalProxy()->attachSlot(SIGNAL(scriptRequest(QString)), this, &CoreSession::scriptRequest);
-    signalProxy()->attachSignal(this, &CoreSession::scriptResult);
-
-    // FIXME
-    // QScriptValue storage_ = scriptEngine->newQObject(storage);
-    // scriptEngine->globalObject().setProperty("storage", storage_);
-}
-
-void CoreSession::scriptRequest(QString script)
-{
-    emit scriptResult(scriptEngine->evaluate(script).toString());
-}
-
 /*** Identity Handling ***/
 void CoreSession::createIdentity(const Identity& identity, const QVariantMap& additional)
 {
@@ -661,7 +657,6 @@ void CoreSession::removeNetwork(NetworkId id)
 
 void CoreSession::destroyNetwork(NetworkId id)
 {
-    QList<BufferId> removedBuffers = Core::requestBufferIdsForNetwork(user(), id);
     Network* net = _networks.take(id);
     if (net && Core::removeNetwork(user(), id)) {
         // make sure that all unprocessed RawMessages from this network are removed
@@ -675,7 +670,7 @@ void CoreSession::destroyNetwork(NetworkId id)
             }
         }
         // remove buffers from syncer
-        for (BufferId bufferId : removedBuffers) {
+        for (BufferId bufferId : Core::requestBufferIdsForNetwork(user(), id)) {
             _bufferSyncer->removeBuffer(bufferId);
         }
         emit networkRemoved(id);

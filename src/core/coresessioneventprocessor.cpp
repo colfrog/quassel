@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -19,6 +19,8 @@
  ***************************************************************************/
 
 #include "coresessioneventprocessor.h"
+
+#include <algorithm>
 
 #include "coreirclisthelper.h"
 #include "corenetwork.h"
@@ -1536,7 +1538,7 @@ void CoreSessionEventProcessor::handleCtcpClientinfo(CtcpEvent* e)
     QStringList supportedHandlers;
     for (const QString& handler : providesHandlers())
         supportedHandlers << handler.toUpper();
-    qSort(supportedHandlers);
+    std::sort(supportedHandlers.begin(), supportedHandlers.end());
     e->setReply(supportedHandlers.join(" "));
 }
 

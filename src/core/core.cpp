@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -213,6 +213,14 @@ void Core::init()
             _identServer = new IdentServer(this);
         }
 
+        if (Quassel::isOptionSet("metrics-daemon")) {
+            _metricsServer = new MetricsServer(this);
+#ifdef HAVE_SSL
+            _server.setMetricsServer(_metricsServer);
+            _v6server.setMetricsServer(_metricsServer);
+#endif
+        }
+
         Quassel::registerReloadHandler([]() {
             // Currently, only reloading SSL certificates and the sysident cache is supported
             if (Core::instance()) {
@@ -294,7 +302,7 @@ void Core::saveState()
     if (_storage) {
         QVariantList activeSessions;
         for (auto&& user : instance()->_sessions.keys())
-            activeSessions << QVariant::fromValue<UserId>(user);
+            activeSessions << QVariant::fromValue(user);
         _storage->setCoreState(activeSessions);
     }
 }
@@ -674,6 +682,10 @@ bool Core::startListening()
         _identServer->startListening();
     }
 
+    if (_metricsServer) {
+        _metricsServer->startListening();
+    }
+
     return success;
 }
 
@@ -681,6 +693,10 @@ void Core::stopListening(const QString& reason)
 {
     if (_identServer) {
         _identServer->stopListening(reason);
+    }
+
+    if (_metricsServer) {
+        _metricsServer->stopListening(reason);
     }
 
     bool wasListening = false;
@@ -714,7 +730,7 @@ void Core::incomingConnection()
         connect(handler, &AuthHandler::socketError, this, &Core::socketError);
         connect(handler, &CoreAuthHandler::handshakeComplete, this, &Core::setupClientSession);
 
-        qInfo() << qPrintable(tr("Client connected from")) << qPrintable(socket->peerAddress().toString());
+        qInfo() << qPrintable(tr("Client connected from")) << qPrintable(handler->hostAddress().toString());
 
         if (!_configured) {
             stopListening(tr("Closing server for basic setup."));
@@ -728,7 +744,7 @@ void Core::clientDisconnected()
     auto* handler = qobject_cast<CoreAuthHandler*>(sender());
     Q_ASSERT(handler);
 
-    qInfo() << qPrintable(tr("Non-authed client disconnected:")) << qPrintable(handler->socket()->peerAddress().toString());
+    qInfo() << qPrintable(tr("Non-authed client disconnected:")) << qPrintable(handler->hostAddress().toString());
     _connectingClients.remove(handler);
     handler->deleteLater();
 

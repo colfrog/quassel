@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -291,16 +291,16 @@ void IrcUser::joinChannel(const QString& channelname)
     joinChannel(network()->newIrcChannel(channelname));
 }
 
-void IrcUser::partChannel(IrcChannel* channel)
+void IrcUser::partChannel(IrcChannel* channel, bool skip_sync)
 {
     if (_channels.contains(channel)) {
         _channels.remove(channel);
         disconnect(channel, nullptr, this, nullptr);
         channel->part(this);
         QString channelName = channel->name();
-        SYNC_OTHER(partChannel, ARG(channelName))
+        if (!skip_sync) SYNC_OTHER(partChannel, ARG(channelName))
         if (_channels.isEmpty() && !network()->isMe(this))
-            quit();
+            quit(skip_sync);
     }
 }
 
@@ -315,16 +315,16 @@ void IrcUser::partChannel(const QString& channelname)
     }
 }
 
-void IrcUser::quit()
+void IrcUser::quit(bool skip_sync)
 {
-    QList<IrcChannel*> channels = _channels.toList();
+    QList<IrcChannel*> channels = _channels.values();
     _channels.clear();
     foreach (IrcChannel* channel, channels) {
         disconnect(channel, nullptr, this, nullptr);
         channel->part(this);
     }
     network()->removeIrcUser(this);
-    SYNC(NO_ARG)
+    if (!skip_sync) SYNC(NO_ARG)
     emit quited();
 }
 

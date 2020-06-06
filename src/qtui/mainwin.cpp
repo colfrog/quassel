@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -1195,7 +1195,8 @@ void MainWin::saveMainToolBarStatus(bool enabled)
 
 void MainWin::doAutoConnect()
 {
-    if (!Client::coreConnection()->connectToCore()) {
+    int accountId = Quassel::optionValue("account").toInt();
+    if (!Client::coreConnection()->connectToCore(accountId)) {
         // No autoconnect selected (or no accounts)
         showCoreConnectionDlg();
     }
@@ -1724,7 +1725,7 @@ void MainWin::clientNetworkCreated(NetworkId id)
     const Network* net = Client::network(id);
     auto* act = new QAction(net->networkName(), this);
     act->setObjectName(QString("NetworkAction-%1").arg(id.toInt()));
-    act->setData(QVariant::fromValue<NetworkId>(id));
+    act->setData(QVariant::fromValue(id));
     connect(net, &SyncableObject::updatedRemotely, this, &MainWin::clientNetworkUpdated);
     connect(act, &QAction::triggered, this, &MainWin::connectOrDisconnectFromNet);
 

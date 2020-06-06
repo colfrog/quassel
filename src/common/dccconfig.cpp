@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -35,22 +35,6 @@ DccConfig::DccConfig(QObject* parent)
     Q_UNUSED(regTypes);
 
     setAllowClientUpdates(true);
-}
-
-DccConfig& DccConfig::operator=(const DccConfig& other)
-{
-    if (this == &other)
-        return *this;
-
-    SyncableObject::operator=(other);
-
-    static auto propCount = staticMetaObject.propertyCount();
-    for (int i = 0; i < propCount; ++i) {
-        auto propName = staticMetaObject.property(i).name();
-        setProperty(propName, other.property(propName));
-    }
-
-    return *this;
 }
 
 bool DccConfig::operator==(const DccConfig& other)

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -20,6 +20,8 @@
 
 #include "chatview.h"
 
+#include <algorithm>
+
 #include <QGraphicsTextItem>
 #include <QKeyEvent>
 #include <QMenu>
@@ -33,6 +35,7 @@
 #include "messagefilter.h"
 #include "qtui.h"
 #include "qtuistyle.h"
+#include "util.h"
 
 ChatView::ChatView(BufferId bufferId, QWidget* parent)
     : QGraphicsView(parent)
@@ -291,8 +294,8 @@ QSet<ChatLine*> ChatView::visibleChatLines(Qt::ItemSelectionMode mode) const
 
 QList<ChatLine*> ChatView::visibleChatLinesSorted(Qt::ItemSelectionMode mode) const
 {
-    QList<ChatLine*> result = visibleChatLines(mode).toList();
-    qSort(result.begin(), result.end(), chatLinePtrLessThan);
+    QList<ChatLine*> result = visibleChatLines(mode).values();
+    std::sort(result.begin(), result.end(), chatLinePtrLessThan);
     return result;
 }
 

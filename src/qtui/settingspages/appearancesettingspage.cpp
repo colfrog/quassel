@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -53,7 +53,7 @@ AppearanceSettingsPage::AppearanceSettingsPage(QWidget* parent)
     initIconThemeComboBox();
 
     foreach (QComboBox* comboBox, findChildren<QComboBox*>()) {
-        connect(comboBox, selectOverload<const QString&>(&QComboBox::currentIndexChanged), this, &AppearanceSettingsPage::widgetHasChanged);
+        connect(comboBox, &QComboBox::currentTextChanged, this, &AppearanceSettingsPage::widgetHasChanged);
     }
     foreach (QCheckBox* checkBox, findChildren<QCheckBox*>()) {
         connect(checkBox, &QAbstractButton::clicked, this, &AppearanceSettingsPage::widgetHasChanged);

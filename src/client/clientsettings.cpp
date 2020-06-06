@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -161,7 +161,7 @@ void CoreAccountSettings::setJumpKeyMap(const QHash<int, BufferId>& keyMap)
     QVariantMap variants;
     QHash<int, BufferId>::const_iterator mapIter = keyMap.constBegin();
     while (mapIter != keyMap.constEnd()) {
-        variants[QString::number(mapIter.key())] = qVariantFromValue(mapIter.value());
+        variants[QString::number(mapIter.key())] = QVariant::fromValue(mapIter.value());
         ++mapIter;
     }
     setAccountValue("JumpKeyMap", variants);
@@ -183,7 +183,7 @@ void CoreAccountSettings::setBufferViewOverlay(const QSet<int>& viewIds)
 {
     QVariantList variants;
     foreach (int viewId, viewIds) {
-        variants << qVariantFromValue(viewId);
+        variants << QVariant::fromValue(viewId);
     }
     setAccountValue("BufferViewOverlay", variants);
 }

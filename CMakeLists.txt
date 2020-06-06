@@ -108,6 +108,11 @@ endif()
 
 # The following options are not for end-user consumption, so don't list them in the feature summary
 option(FATAL_WARNINGS "Make compile warnings fatal (most useful for CI builds)" OFF)
+option(WARN_QT_DEPRECATION "Warn about deprecated Qt functionality" OFF)
+if (WARN_QT_DEPRECATION)
+    # Enable Qt deprecation warnings for Qt < 5.13 (on by default in newer versions)
+    add_definitions("-DQT_DEPRECATED_WARNINGS")
+endif()
 cmake_dependent_option(DEPLOY "Add required libs to bundle resources and create a dmg" OFF "APPLE" OFF)
 
 # List of authenticators and the cmake flags to build them
@@ -164,7 +169,7 @@ if (BUILD_GUI)
     list(APPEND qt_components Gui Widgets)
 endif()
 if (BUILD_CORE)
-    list(APPEND qt_components Script Sql)
+    list(APPEND qt_components Sql)
 endif()
 
 find_package(Qt5 ${QT_MIN_VERSION} REQUIRED COMPONENTS ${qt_components})
@@ -207,19 +212,23 @@ if (BUILD_GUI)
         PURPOSE     "Required for audio notifications"
     )
 
-    find_package(LibsnoreQt5 0.7.0 QUIET)
-    set_package_properties(LibsnoreQt5 PROPERTIES TYPE OPTIONAL
-        URL "https://projects.kde.org/projects/playground/libs/snorenotify"
-        DESCRIPTION "a cross-platform notification framework"
-        PURPOSE     "Enable support for the snorenotify framework"
-    )
-    if (LibsnoreQt5_FOUND)
-        find_package(LibsnoreSettingsQt5 QUIET)
-        set_package_properties(LibsnoreSettingsQt5 PROPERTIES TYPE OPTIONAL
+    # snorenotify segfaults on startup on msys2
+    # we don't check for just MSYS to support the Ninja generator
+    if(NOT (WIN32 AND (NOT $ENV{MSYSTEM} STREQUAL "")))
+        find_package(LibsnoreQt5 0.7.0 QUIET)
+        set_package_properties(LibsnoreQt5 PROPERTIES TYPE OPTIONAL
             URL "https://projects.kde.org/projects/playground/libs/snorenotify"
             DESCRIPTION "a cross-platform notification framework"
             PURPOSE     "Enable support for the snorenotify framework"
         )
+        if (LibsnoreQt5_FOUND)
+            find_package(LibsnoreSettingsQt5 QUIET)
+            set_package_properties(LibsnoreSettingsQt5 PROPERTIES TYPE OPTIONAL
+                URL "https://projects.kde.org/projects/playground/libs/snorenotify"
+                DESCRIPTION "a cross-platform notification framework"
+                PURPOSE     "Enable support for the snorenotify framework"
+            )
+        endif()
     endif()
 
     if (WITH_WEBENGINE)

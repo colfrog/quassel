@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -166,9 +166,9 @@ public slots:
      */
     void joinChannel(IrcChannel* channel, bool skip_channel_join = false);
     void joinChannel(const QString& channelname);
-    void partChannel(IrcChannel* channel);
+    void partChannel(IrcChannel* channel, bool skip_sync = false);
     void partChannel(const QString& channelname);
-    void quit();
+    void quit(bool skip_sync = false);
 
     void addUserModes(const QString& modes);
     void removeUserModes(const QString& modes);

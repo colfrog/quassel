@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005-2019 by the Quassel Project                        *
+ *   Copyright (C) 2005-2020 by the Quassel Project                        *
  *   devel@quassel-irc.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -19,6 +19,8 @@
  ***************************************************************************/
 
 #include "highlightsettingspage.h"
+
+#include <algorithm>
 
 #include <QHeaderView>
 #include <QMessageBox>
@@ -197,7 +199,7 @@ void HighlightSettingsPage::removeSelectedRows()
     foreach (QTableWidgetItem* selectedItem, selectedItemList) {
         selectedRows.append(selectedItem->row());
     }
-    qSort(selectedRows.begin(), selectedRows.end(), qGreater<int>());
+    std::sort(selectedRows.begin(), selectedRows.end(), std::greater<>());
     int lastRow = -1;
     foreach (int row, selectedRows) {
         if (row != lastRow) {
